@@ -22,4 +22,27 @@ public class JPosClient extends QBeanSupport implements ISOResponseListener {
     this.responseMap = SpaceFactory.getSpace(cfg.get("spaceName"));
     NameRegistrar.register(getName(), this);
   }
+
+  public void sendRequest(ISOMsg reqMsg, String handback, String muxName) {
+    try {
+      MUX mux = QMUX.getMUX(muxName);
+      mux.request(reqMsg, timeout, this, handback);
+    } catch(NotFoundException e) {
+      e.printStackTrace();
+    } catch(ISOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public ISOMsg getResponse(String handback) {
+    return responseMap.in(handback, timeout);
+  }
+
+  public void responseReceived(ISOMsg resp, Object handback) {
+    responseMap.out(String.valueOf(handback), resp, timeout);
+  }
+
+  public void expired(Object handback) {
+    System.out.println("Request " + handback + " is timeout");
+  }
 }
